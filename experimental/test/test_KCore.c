@@ -50,6 +50,7 @@ const matrix_info files [ ] =
 void test_KCore (void)
 {
     LAGraph_Init (msg) ;
+    GxB_set (GxB_BURBLE, true, GrB_GLOBAL) ;
 
     for (int k = 0 ; ; k++)
     {

@@ -54,7 +54,7 @@ const matrix_info files [ ] =
 void test_ktruss (void)
 {
     LAGraph_Init (msg) ;
-
+    GxB_set (GxB_BURBLE, true, GrB_GLOBAL) ;
     for (int id = 0 ; ; id++)
     {
 

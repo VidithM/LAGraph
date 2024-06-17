@@ -155,7 +155,7 @@ int main(int argc, char **argv)
             int64_t seed = trial * n + 1 ;
             double tt = LAGraph_WallClockTime ( ) ;
 
-            LG_TRY (LAGraph_Coarsen_Matching (&coarsened, &parent_result, &newlabel_result, &inv_newlabel_result, G, LAGraph_Matching_heavy, 0, 1, DEFAULT_SEED, msg)) ;
+            LG_TRY (LAGraph_Coarsen_Matching (&coarsened, &parent_result, &newlabel_result, &inv_newlabel_result, G, LAGraph_Matching_heavy, 0, 1, seed, msg)) ;
 
             tt = LAGraph_WallClockTime ( ) - tt ;
 

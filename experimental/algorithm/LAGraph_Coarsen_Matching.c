@@ -36,6 +36,7 @@ counts the number of combined edges). If this option is false, then only the pat
 There are 4 outputs from the function:
 1. A GrB_Matrix of the coarsened graph (if the input adjacency matrix is of type GrB_BOOL or GrB_UINT{8|16|32} or GrB_INT*, it will
 have type GrB_INT64. If it is of type GrB_FP32, it will have type GrB_FP64. Else, it will have the same type as the input matrix.
+NOTE: This method does NOT support complex types
 
 2. A full GrB_Vector (parent_result) of length n where if parent_result[u] = v,
 then node u has parent v. This parent mapping is derived from a maximal matching of the graph
@@ -346,46 +347,12 @@ int LAGraph_Coarsen_Matching
                 printf("Rebuilding A with GrB_INT64/FP64, orig type was %s\n", typename);
             #endif
 
-            #if 0
-
-            // FIXME: fast and easy
+            bool is_float = (type == GrB_FP32) ;
             GRB_TRY (GrB_Matrix_nrows (&nrows, G->A)) ;
             A_type = (is_float ? GrB_FP64 : GrB_INT64) ;
             GRB_TRY (GrB_Matrix_new (&A, A_type, nrows, nrows)) ;
             GRB_TRY (GrB_assign (A, NULL, NULL, G->A, GrB_ALL, nrows, GrB_ALL, nrows, NULL)) ;
-
-            #else
-
-            // FIXME: slow and hard
-            bool is_float = (type == GrB_FP32) ;
-
-            GRB_TRY (GrB_Matrix_nvals (&nvals, G->A)) ;
-            GRB_TRY (GrB_Matrix_nrows (&nrows, G->A)) ;
-
-            LG_TRY (LAGraph_Malloc ((void**)(&rows), nvals, sizeof(GrB_Index), msg)) ;
-            LG_TRY (LAGraph_Malloc ((void**)(&cols), nvals, sizeof(GrB_Index), msg)) ;
-            LG_TRY (LAGraph_Malloc ((void**)(&vals), nvals, is_float ? sizeof(double) : sizeof(int64_t), msg)) ;
-            // extractTuples casts all entries to target type
-            if (is_float) {
-                GRB_TRY (GrB_Matrix_extractTuples_FP64 (rows, cols, vals, &nvals, G->A)) ;
-            } else {
-                GRB_TRY (GrB_Matrix_extractTuples_INT64 (rows, cols, vals, &nvals, G->A)) ;
-            }
-
-            GRB_TRY (GrB_Matrix_new (&A, is_float ? GrB_FP64 : GrB_INT64, nrows, nrows)) ;
-
-            if (is_float) {
-                GRB_TRY (GrB_Matrix_build_FP64 (A, rows, cols, vals, nvals, NULL)) ;
-            } else {
-                GRB_TRY (GrB_Matrix_build_INT64 (A, rows, cols, vals, nvals, NULL)) ;
-            }
-
-            LG_TRY (LAGraph_Free ((void**)(&rows), msg)) ;
-            LG_TRY (LAGraph_Free ((void**)(&cols), msg)) ;
-            LG_TRY (LAGraph_Free ((void**)(&vals), msg)) ;
-            A_type = (is_float ? GrB_FP64 : GrB_INT64) ;
-            #endif
-            
+ 
         }
     }
     else
