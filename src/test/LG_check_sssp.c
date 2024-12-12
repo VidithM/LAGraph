@@ -68,6 +68,7 @@ int LG_check_sssp
                                 // shortest path from src to node i.
     LAGraph_Graph G,            // all edge weights must be > 0
     GrB_Index src,
+    const char *mat_name,
     char *msg
 )
 {
@@ -336,6 +337,9 @@ int LG_check_sssp
         }
         else
         {
+            if (!strcmp(mat_name, "LFAT5_hypersparse.mtx") || !strcmp(mat_name, "LFAT5.mtx")) {
+                printf("[VIDITH]: For %ld, path_length is: %0.7f, distance is: %0.7f\n", i, path_length_in [i], distance [i]) ;
+            }
             err = fabs (path_length_in [i] - distance [i]) ;
             double d = LAGRAPH_MAX (path_length_in [i], distance [i]) ;
             if (err > 0) err = err / d ;

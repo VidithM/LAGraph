@@ -73,6 +73,7 @@ int LG_check_sssp
                                 // shortest path from src to node i.
     LAGraph_Graph G,            // all edge weights must be > 0
     GrB_Index src,
+    const char *mat_name,
     char *msg
 ) ;
 

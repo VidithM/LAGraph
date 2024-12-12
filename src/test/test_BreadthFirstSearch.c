@@ -191,7 +191,7 @@ bool check_karate_levels30(GrB_Vector levels)
 void setup(void)
 {
     LAGraph_Init(msg);
-    GxB_Global_Option_set (GxB_BURBLE, true) ;
+    GrB_set (GrB_GLOBAL, true, GxB_BURBLE) ;
     int retval;
     GrB_Matrix A = NULL;
 

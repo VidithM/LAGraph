@@ -19,8 +19,9 @@
 // Usage:
 // test_sssp matrix.mtx sourcenodes.mtx delta
 // test_sssp matrix.grb sourcenodes.mtx delta
-
 #include "LAGraph_demo.h"
+
+void GB_Global_hack_set (int k, int64_t hack) ;
 
 // #define NTHREAD_LIST 1
 // #define NTHREAD_LIST 2
@@ -43,6 +44,7 @@ int main (int argc, char **argv)
     LAGraph_Graph G = NULL ;
     GrB_Matrix SourceNodes = NULL ;
     GrB_Vector pathlen = NULL ;
+    GrB_Vector gpu_pathlen = NULL ;
 
     // start GraphBLAS and LAGraph
     bool burble = false ;
@@ -121,6 +123,8 @@ int main (int argc, char **argv)
     // warmup
     //--------------------------------------------------------------------------
 
+    // warmup (no GPU)
+    GB_Global_hack_set (2, 2) ;
     LAGRAPH_TRY (LAGraph_SetNumThreads (1, nthreads_max, msg)) ;
     // src = SourceNodes [0]
     GrB_Index src = -1 ;
@@ -130,70 +134,107 @@ int main (int argc, char **argv)
     double t1 = LAGraph_WallClockTime ( ) ;
     LAGRAPH_TRY (LAGr_SingleSourceShortestPath (&pathlen, G, src, Delta, msg)) ;
     t1 = LAGraph_WallClockTime ( ) - t1 ;
-    printf ("warmup: %g sec\n", t1) ;
+    printf ("warmup (no GPU): %g sec\n", t1) ;
+
+    // warmup (with GPU)
+    GB_Global_hack_set (2, 1) ;
+    LAGRAPH_TRY (LAGraph_SetNumThreads (1, nthreads_max, msg)) ;
+    // src = SourceNodes [0]
+    src = -1 ;
+    GRB_TRY (GrB_Matrix_extractElement (&src, SourceNodes, 0, 0)) ;
+    src-- ;     // convert from 1-based to 0-based
+
+    t1 = LAGraph_WallClockTime ( ) ;
+    LAGRAPH_TRY (LAGr_SingleSourceShortestPath (&gpu_pathlen, G, src, Delta, msg)) ;
+    t1 = LAGraph_WallClockTime ( ) - t1 ;
+    printf ("warmup (with GPU): %g sec\n", t1) ;
+
+    bool same ;
+    LAGRAPH_TRY (LAGraph_Vector_IsEqual (&same, pathlen, gpu_pathlen, msg)) ;
+
+    if (!same)
+    {
+        printf ("GPU and CPU warmup results don't match\n") ;
+        fflush (stdout) ;
+        fflush (stderr) ;
+        abort ( ) ;
+    }
 
     //--------------------------------------------------------------------------
     // begin tests
     //--------------------------------------------------------------------------
-    
-    for (int tt = 1 ; tt <= nt ; tt++)
+    for (int with_gpu = 0 ; with_gpu <= 1 ; with_gpu++)
     {
-        int nthreads = Nthreads [tt] ;
-        if (nthreads > nthreads_max) continue ;
-        LAGRAPH_TRY (LAGraph_SetNumThreads (1, nthreads, msg)) ;
-        double total_time = 0 ;
-
-        for (int trial = 0 ; trial < ntrials ; trial++)
+        if (with_gpu)
         {
-
-            //------------------------------------------------------------------
-            // get the source node for this trial
-            //------------------------------------------------------------------
-
-            // src = SourceNodes [trial]
-            GrB_Index src = -1 ;
-            GRB_TRY (GrB_Matrix_extractElement (&src, SourceNodes, trial, 0)) ;
-            src-- ;     // convert from 1-based to 0-based
-
-            //------------------------------------------------------------------
-            // sssp
-            //------------------------------------------------------------------
-
-            GrB_free (&pathlen) ;
-            double ttrial = LAGraph_WallClockTime ( ) ;
-            LAGRAPH_TRY (LAGr_SingleSourceShortestPath (&pathlen, G, src,
-                Delta, msg)) ;
-            ttrial = LAGraph_WallClockTime ( ) - ttrial ;
-
-            printf ("sssp15:  threads: %2d trial: %2d source %12" PRId64
-                " time: %10.4f sec\n", nthreads, trial, src, ttrial) ;
-            total_time += ttrial ;
-
-#if LG_CHECK_RESULT
-            // check result
-            if (trial == 0)
-            {
-                // all trials can be checked, but this is slow so do just
-                // for the first trial
-                double tcheck = LAGraph_WallClockTime ( ) ;
-                LAGRAPH_TRY (LG_check_sssp (pathlen, G, src, msg)) ;
-                tcheck = LAGraph_WallClockTime ( ) - tcheck ;
-                printf ("total check time: %g sec\n", tcheck) ;
-            }
-#endif
+            GB_Global_hack_set (2, 1) ;
+        }
+        else
+        {
+            GB_Global_hack_set (2, 2) ;
         }
 
-        //----------------------------------------------------------------------
-        // report results
-        //----------------------------------------------------------------------
+        printf ("===== GPU: %d =====\n", with_gpu) ;
 
-        printf ("\n") ;
-        double e = (double) nvals ;
-        total_time = total_time / ntrials ;
-        printf ("%2d: SSSP    time: %14.6f sec  rate: %8.2f (delta %d)\n",
-            nthreads, total_time, 1e-6 * e / total_time, delta);
-        fprintf (stderr, "Avg: SSSP         %3d: %10.3f sec: %s\n",
-             nthreads, total_time, matrix_name) ;
+        for (int tt = 1 ; tt <= nt ; tt++)
+        {
+            int nthreads = Nthreads [tt] ;
+            if (nthreads > nthreads_max) continue ;
+            LAGRAPH_TRY (LAGraph_SetNumThreads (1, nthreads, msg)) ;
+            double total_time = 0 ;
+
+            for (int trial = 0 ; trial < ntrials ; trial++)
+            {
+
+                //------------------------------------------------------------------
+                // get the source node for this trial
+                //------------------------------------------------------------------
+
+                // src = SourceNodes [trial]
+                GrB_Index src = -1 ;
+                GRB_TRY (GrB_Matrix_extractElement (&src, SourceNodes, trial, 0)) ;
+                src-- ;     // convert from 1-based to 0-based
+
+                //------------------------------------------------------------------
+                // sssp
+                //------------------------------------------------------------------
+
+                GrB_free (&pathlen) ;
+                double ttrial = LAGraph_WallClockTime ( ) ;
+                LAGRAPH_TRY (LAGr_SingleSourceShortestPath (&pathlen, G, src,
+                    Delta, msg)) ;
+                ttrial = LAGraph_WallClockTime ( ) - ttrial ;
+
+                printf ("sssp15:  threads: %2d trial: %2d source %12" PRId64
+                    " time: %10.4f sec\n", nthreads, trial, src, ttrial) ;
+                total_time += ttrial ;
+
+#if LG_CHECK_RESULT
+                // check result
+                if (trial == 0)
+                {
+                    // all trials can be checked, but this is slow so do just
+                    // for the first trial
+                    double tcheck = LAGraph_WallClockTime ( ) ;
+                    LAGRAPH_TRY (LG_check_sssp (pathlen, G, src, msg)) ;
+                    tcheck = LAGraph_WallClockTime ( ) - tcheck ;
+                    printf ("total check time: %g sec\n", tcheck) ;
+                }
+#endif
+            }
+
+            //----------------------------------------------------------------------
+            // report results
+            //----------------------------------------------------------------------
+
+            printf ("\n") ;
+            double e = (double) nvals ;
+            total_time = total_time / ntrials ;
+            printf ("%2d: SSSP (GPU: %d)   time: %14.6f sec  rate: %8.2f (delta %d)\n",
+                nthreads, with_gpu, total_time, 1e-6 * e / total_time, delta);
+            fprintf (stderr, "Avg: SSSP         %3d: %10.3f sec: %s\n",
+                nthreads, total_time, matrix_name) ;
+        }
     }
 
     //--------------------------------------------------------------------------

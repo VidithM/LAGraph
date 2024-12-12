@@ -71,6 +71,7 @@ const matrix_info files [ ] =
 void test_SingleSourceShortestPath(void)
 {
     LAGraph_Init(msg);
+    GxB_set (GxB_BURBLE, true) ; 
     GrB_Matrix A = NULL, T = NULL ;
     GrB_Scalar Delta = NULL ;
     OK (GrB_Scalar_new (&Delta, GrB_INT32)) ;
@@ -144,7 +145,7 @@ void test_SingleSourceShortestPath(void)
                 OK (GrB_Scalar_setElement (Delta, delta)) ;
                 OK (LAGr_SingleSourceShortestPath (&path_length, G,
                     src, Delta, msg)) ;
-                int res = LG_check_sssp (path_length, G, src, msg) ;
+                int res = LG_check_sssp (path_length, G, src, aname, msg) ;
                 if (res != GrB_SUCCESS) printf ("res: %d msg: %s\n", res, msg) ;
                 OK (res) ;
                 OK (GrB_free(&path_length)) ;
@@ -291,7 +292,7 @@ void test_SingleSourceShortestPath_types (void)
                 OK (GrB_Scalar_setElement (Delta, delta)) ;
                 OK (LAGr_SingleSourceShortestPath (&path_length, G, src,
                     Delta, msg)) ;
-                int res = LG_check_sssp (path_length, G, src, msg) ;
+                int res = LG_check_sssp (path_length, G, src, aname, msg) ;
                 if (res != GrB_SUCCESS) printf ("res: %d msg: %s\n", res, msg) ;
                 OK (res) ;
                 OK (GrB_free(&path_length)) ;
@@ -349,6 +350,10 @@ void test_SingleSourceShortestPath_failure (void)
 //------------------------------------------------------------------------------
 // test_SingleSourceShortestPath_brutal
 //------------------------------------------------------------------------------
+
+static void brkpt() {
+    printf("Hi\n");
+}
 
 #if LAGRAPH_SUITESPARSE
 void test_SingleSourceShortestPath_brutal (void)
@@ -417,9 +422,12 @@ void test_SingleSourceShortestPath_brutal (void)
         int32_t delta = 30 ;
         printf ("src %d delta %d n %d\n", (int) src, delta, (int) n) ;
         OK (GrB_Scalar_setElement (Delta, delta)) ;
+        if (!strcmp(aname, "LFAT5.mtx") || !strcmp(aname, "LFAT5_hypersparse.mtx")) {
+            brkpt();
+        }
         LG_BRUTAL (LAGr_SingleSourceShortestPath (&path_length, G, src,
             Delta, msg)) ;
-        int rr = (LG_check_sssp (path_length, G, src, msg)) ;
+        int rr = (LG_check_sssp (path_length, G, src, aname, msg)) ;
         printf ("rr %d msg %s\n", rr, msg) ;
         OK (rr) ;
         OK (GrB_free(&path_length)) ;

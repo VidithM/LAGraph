@@ -41,6 +41,9 @@ gmon.out
 cmake-build-debug*
 CMakeFiles*
 *~
+data/com-Orkut
+data/com-Orkut.tar
+data/kmer_V2a
 
 */build/*
 **/.venv/*
