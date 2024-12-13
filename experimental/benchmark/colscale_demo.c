@@ -25,14 +25,14 @@ int main(int argc, char **argv)
     bool burble = false ; 
     demo_init (burble) ;
 
+    GrB_Index n = (argc > 2 ? atoi (argv [2]) : DEFAULT_SIZE) ;
+    double density = (argc > 3 ? atof (argv [3]) : DEFAULT_DENSITY) ;
+    uint64_t seed = (argc > 4 ? atoll (argv [4]) : DEFAULT_SEED) ;
+
     LG_TRY (LAGraph_Random_Init (msg)) ;
     int ntrials = 10 ;
 
     for (int i = 0 ; i < ntrials ; i++) {
-        GrB_Index n = (argc > 2 ? atoi (argv [2]) : DEFAULT_SIZE) ;
-        double density = (argc > 3 ? atof (argv [3]) : DEFAULT_DENSITY) ;
-        uint64_t seed = (argc > 4 ? atoll (argv [4]) : DEFAULT_SEED) ;
-
         LG_TRY (LAGraph_Random_Matrix (&D, GrB_FP64, n, n, density, seed, msg)) ;
         LG_TRY (LAGraph_Random_Matrix (&A, GrB_FP64, n, n, density, seed + 32, msg)) ;
         GRB_TRY (GxB_set (D, GxB_SPARSITY_CONTROL, GxB_SPARSE)) ;
