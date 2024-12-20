@@ -2,11 +2,13 @@
 #include "LG_internal.h"
 #include "LAGraphX.h"
 
-#define DEFAULT_SIZE 1000
+#define DEFAULT_SIZE 500
 #define DEFAULT_DENSITY 0.7
 #define DEFAULT_SEED 42
 
-#define POSITIONAL 0
+#define POSITIONAL 1
+#define IJ 0
+#define BITMAP 0
 
 #define LG_FREE_ALL            \
 {                              \
@@ -35,7 +37,8 @@ int main(int argc, char **argv)
     for (int i = 0 ; i < ntrials ; i++) {
 
         LG_TRY (LAGraph_Random_Matrix (&A, GrB_UINT64, n, n, density, seed, msg)) ;
-        GRB_TRY (GxB_set (A, GxB_SPARSITY_CONTROL, GxB_SPARSE)) ;
+        GRB_TRY (GxB_set (A, GxB_SPARSITY_CONTROL,
+            BITMAP ? GxB_BITMAP : GxB_SPARSE)) ;
 
         GrB_Scalar s ;
         GRB_TRY (GrB_Scalar_new (&s, GrB_UINT64)) ;
@@ -47,7 +50,8 @@ int main(int argc, char **argv)
         printf ("nvals: A: %ld\n", A_nvals) ;
 
         GRB_TRY (GrB_Scalar_setElement_UINT64 (s, (uint64_t) 0)) ;
-        GRB_TRY (GrB_Matrix_select_Scalar (Res, NULL, NULL, (POSITIONAL ? GrB_DIAG : GrB_VALUEEQ_UINT64), A, s, NULL)) ;
+        GRB_TRY (GrB_Matrix_select_Scalar (Res, NULL, NULL, (POSITIONAL ? 
+            (IJ ? GrB_DIAG : GrB_ROWLE) : GrB_VALUEEQ_UINT64), A, s, NULL)) ;
         
         GrB_Matrix_free (&A) ;
         GrB_Matrix_free (&Res) ;
