@@ -33,7 +33,9 @@ Note that complex types are NOT supported.
 #include "LG_internal.h"
 #include "LAGraphX.h"
 
+#ifdef OPENMP_
 #include <omp.h>
+#endif
 
 // #define dbg
 

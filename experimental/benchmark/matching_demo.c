@@ -35,7 +35,9 @@ NOTE: When complete, prints out the matching vector and E matrix of the input gr
 #include "../../src/benchmark/LAGraph_demo.h"
 #include "LG_internal.h"
 #include "LAGraphX.h"
+#ifdef OPENMP_
 #include <omp.h>
+#endif
 
 // #define VERBOSE
 

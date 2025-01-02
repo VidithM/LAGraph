@@ -2,7 +2,9 @@
 
 #include "LG_internal.h"
 #include "LAGraphX.h"
+#ifdef OPENMP_
 #include <omp.h>
+#endif
 #include <LAGraph.h>
 
 // #define USAGE "usage: [x,p] = LAGraph_argminmax (A, minmax, dim)"
