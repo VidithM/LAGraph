@@ -278,7 +278,7 @@ int LAGraph_cdlp
             #ifdef OPENMP_
             int thread_id = omp_get_thread_num ( ) ;
             #else
-            int thread_id = 1 ;
+            int thread_id = 0 ;
             #endif
             ptable *counts = &counts_pool[thread_id];
             GrB_Index* neighbors = Si + Sp[i] ;
