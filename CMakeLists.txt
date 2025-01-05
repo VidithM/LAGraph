@@ -83,6 +83,8 @@ check_symbol_exists ( fmax "math.h" NO_LIBM )
 # code coverage and build type
 #-------------------------------------------------------------------------------
 
+set (CMAKE_C_FLAGS_RELEASE "-O3 -g")    # FIXME
+
 # To compile with test coverage:
 #   cd build
 #   cmake -DCOVERAGE=1 ..
@@ -247,6 +249,11 @@ elseif ( "${CMAKE_C_COMPILER_ID}" STREQUAL "Intel" )
     #if ( CMAKE_C_COMPILER_VERSION VERSION_LESS 18.0 )
     #    message ( FATAL_ERROR "icc version must be at least 18.0" )
     #endif ( )
+elseif ( "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang" )
+    # options for Apple Clang
+    # FIXME
+#    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fsanitize=address" )
+#    set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fsanitize=thread" )
 elseif ( "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" AND NOT "${CMAKE_C_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC" )
     # options for clang
     set ( CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -O3 " )
