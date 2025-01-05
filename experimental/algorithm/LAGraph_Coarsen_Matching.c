@@ -60,9 +60,7 @@ This method requires O(n + e) space for an undirected graph with e edges and n n
 #include "LG_internal.h"
 #include "LAGraphX.h"
 
-#ifdef OPENMP_
 #include <omp.h>
-#endif
 
 // #define dbg
 // #define burble

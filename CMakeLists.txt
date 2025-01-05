@@ -83,8 +83,6 @@ check_symbol_exists ( fmax "math.h" NO_LIBM )
 # code coverage and build type
 #-------------------------------------------------------------------------------
 
-set (CMAKE_C_FLAGS_RELEASE "-O3 -g")    # FIXME
-
 # To compile with test coverage:
 #   cd build
 #   cmake -DCOVERAGE=1 ..
