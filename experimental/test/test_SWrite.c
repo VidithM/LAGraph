@@ -150,8 +150,12 @@ void test_SWrite (void)
                     blob_size_old, sizeof (uint8_t), msg)) ;
             }
 
+            printf ("blob %p blob_size %llu\n", (void *) blob, blob_size) ;
+
             // deserialize the matrix
             int rr = (GrB_Matrix_deserialize (&B, atype, blob, blob_size)) ;
+            printf ("deserialize result: %d\n", rr) ;
+            GxB_print (B, 2) ;
             OK (rr) ;
 
             // ensure the matrices A and B are the same
